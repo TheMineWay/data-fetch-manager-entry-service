@@ -2,8 +2,9 @@ import { object, string } from "yup";
 import { DataFetchEntryDTO } from "../dto";
 import { Sort } from "../types";
 import { DataFetchEntryObject } from "../types/data-fetch-entry-object.type";
+import { DataModelDefinition } from "../definition/data-model-definition";
 
-type Options<T extends object> = { keys: (keyof T)[] };
+type Options<T extends object> = {};
 
 const filtersSchema = object({
   search: string().optional(),
@@ -12,7 +13,8 @@ const filtersSchema = object({
 export class DataFetchParser<T extends object> {
   constructor(
     private readonly dto: DataFetchEntryDTO,
-    private readonly options: Options<T>
+    private readonly modelDefinition: DataModelDefinition<T>,
+    private readonly options?: Options<T>
   ) {}
 
   parse = () => {
@@ -47,8 +49,12 @@ export class DataFetchParser<T extends object> {
         Array.isArray(sort) &&
         sort.length === 2 &&
         sort.filter((s) => typeof s === "string") &&
-        this.options.keys.includes(sort[0] as keyof T) &&
+        this.getKeys().includes(sort[0] as keyof T) &&
         ["asc", "desc"].includes(sort[1])
     ) as Sort<T>;
   };
+
+  // Utils
+
+  private getKeys = () => this.modelDefinition.getKeys();
 }
